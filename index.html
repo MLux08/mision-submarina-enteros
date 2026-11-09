@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misión Submarina: El Mapa de las Profundidades</title>
+<meta name="description" content="Juego educativo interactivo de matemáticas para 6º de Primaria sobre números enteros.">
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Google Fonts: Orbitron & Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+
+<!-- Canvas Confetti CDN -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ocean: {
+          900: '#030b1e',
+          800: '#071638',
+          700: '#0d255c',
+          600: '#133882',
+          cyan: '#00f0ff',
+          emerald: '#00ffaa',
+          warning: '#ffb700',
+          danger: '#ff2a6d'
+        }
+      },
+      fontFamily: {
+        tech: ['Orbitron', 'sans-serif'],
+        body: ['Inter', 'sans-serif']
+      }
+    }
+  }
+};
+</script>
+
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at center, #071638 0%, #030b1e 100%);
+  color: #e2e8f0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.font-tech {
+  font-family: 'Orbitron', sans-serif;
+}
+.glass-panel {
+  background: rgba(7, 22, 56, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.glass-panel-glow {
+  background: rgba(13, 37, 92, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+.btn-cyber {
+  position: relative;
+  background: linear-gradient(135deg, #0d255c 0%, #133882 100%);
+  border: 1px solid #00f0ff;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+.btn-cyber:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00f0ff 0%, #00ffaa 100%);
+  color: #030b1e;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  transform: translateY(-2px);
+}
+.btn-cyber:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn-cyber:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #475569;
+}
+.btn-danger {
+  border-color: #ff2a6d;
+  box-shadow: 0 0 10px rgba(255, 42, 109, 0.2);
+}
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff2a6d 0%, #ffb700 100%);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 42, 109, 0.6);
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 4s infinite ease-in-out;
+}
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #030b1e;
+}
+::-webkit-scrollbar-thumb {
+  background: #133882;
+  border-radius: 4px;
+  border: 1px solid #00f0ff;
+}
+</style>
+</head>
+<body class="flex flex-col min-h-screen justify-between relative selection:bg-ocean-cyan selection:text-ocean-900">
+
+<canvas id="bubbleCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+<header class="relative z-10 w-full glass-panel border-b border-ocean-cyan/30 px-4 py-3 sticky top-0">
+<div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-ocean-cyan/20 border border-ocean-cyan flex items-center justify-center animate-float">
+<svg class="w-6 h-6 text-ocean-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+</svg>
+</div>
+<div>
+<h1 class="font-tech text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-ocean-cyan to-ocean-emerald tracking-wider">
+MISIÓN SUBMARINA
+</h1>
+<p class="text-xs text-slate-400 font-medium">Mapa de las Profundidades • 6º Primaria</p>
+</div>
+</div>
+<div class="flex items-center gap-4 sm:gap-6 bg-ocean-900/80 px-4 py-2 rounded-xl border border-ocean-cyan/20">
+<div class="flex items-center space-x-1.5" title="Nivel Actual">
+<span class="text-xs text-slate-400 uppercase font-bold">Nivel:</span>
+<span id="statLevel" class="font-tech text-ocean-cyan font-bold text-base">1</span>
+<span class="text-slate-500 text-xs">/5</span>
+</div>
+<div class="flex items-center space-x-1.5" title="Tanques de Oxígeno">
+<svg class="w-5 h-5 text-ocean-danger animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+</svg>
+<div id="livesContainer" class="flex space-x-1"></div>
+</div>
+<div class="flex items-center space-x-1.5" title="Puntuación acumulada">
+<svg class="w-5 h-5 text-ocean-warning" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+</svg>
+<span id="statScore" class="font-tech text-ocean-warning font-bold text-base">0</span>
+</div>
+<div class="hidden sm:flex items-center space-x-1" title="Racha de aciertos">
+<span class="text-xs text-slate-400">🔥</span>
+<span id="statStreak" class="font-tech text-ocean-emerald font-bold text-sm">0</span>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<button id="btnToggleSound" onclick="game.toggleSound()" class="p-2 rounded-lg border border-slate-700 hover:border-ocean-cyan text-slate-300 hover:text-ocean-cyan transition" title="Activar/Desactivar Sonido" aria-label="Activar o desactivar sonido">
+<svg id="iconSoundOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+</svg>
+<svg id="iconSoundOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"/>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+</svg>
+</button>
+<button onclick="game.restartGame()" class="p-2 rounded-lg border border-slate-700 hover:border-ocean-danger text-slate-300 hover:text-ocean-danger transition" title="Reiniciar Juego" aria-label="Reiniciar juego">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+</svg>
+</button>
+</div>
+</div>
+</header>
+
+<main class="relative z-10 flex-grow max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+
+<div id="screenWelcome" class="glass-panel rounded-2xl p-6 sm:p-10 text-center max-w-2xl mx-auto space-y-6 animate-pulse-glow">
+<div class="w-24 h-24 mx-auto rounded-full bg-ocean-cyan/10 border-2 border-ocean-cyan flex items-center justify-center p-3">
+<svg class="w-full h-full text-ocean-cyan" viewBox="0 0 100 100" fill="none">
+<circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" stroke-dasharray="6 6"/>
+<path d="M30 65 L50 30 L70 65 L50 55 Z" fill="currentColor"/>
+</svg>
+</div>
+<div class="space-y-2">
+<h2 class="font-tech text-2xl sm:text-4xl font-extrabold text-ocean-cyan">
+MISIÓN SUBMARINA
+</h2>
+<p class="text-ocean-emerald font-semibold text-lg">El Mapa de las Profundidades</p>
+</div>
+<p class="text-slate-300 text-sm sm:text-base leading-relaxed text-justify sm:text-center">
+¡Bienvenido/a Capitán! El submarino <span class="text-ocean-cyan font-bold">Nautilus-VI</span> necesita explorar las fosas oceánicas. Para lograrlo, deberás dominar el lenguaje de los <span class="text-ocean-emerald font-bold">Números Enteros</span>: magnitudes relativas, la recta numérica, operaciones de profundidad y navegación en coordenadas cartesianas.
+</p>
+<div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-semibold py-2">
+<div class="p-2 rounded-lg bg-ocean-800 border border-ocean-cyan/30 text-ocean-cyan">1. Concepto</div>
+<div class="p-2 rounded-lg bg-ocean-800 border border-ocean-cyan/30 text-ocean-cyan">2. Comparación</div>
+<div class="p-2 rounded-lg bg-ocean-800 border border-ocean-cyan/30 text-ocean-cyan">3. Suma / Resta</div>
+<div class="p-2 rounded-lg bg-ocean-800 border border-ocean-cyan/30 text-ocean-cyan">4. Problemas</div>
+<div class="p-2 rounded-lg bg-ocean-800 border border-ocean-cyan/30 text-ocean-cyan col-span-2 sm:col-span-1">5. Coordenadas</div>
+</div>
+<button onclick="game.startGame()" class="btn-cyber w-full py-4 rounded-xl font-tech font-bold text-lg text-ocean-cyan tracking-wider uppercase">
+🚀 Iniciar Inmersión
+</button>
+</div>
+
+<div id="screenGame" class="hidden space-y-6">
+<div class="glass-panel rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-l-4 border-ocean-cyan">
+<div>
+<span id="levelBadge" class="text-xs font-tech font-bold px-2.5 py-1 rounded bg-ocean-cyan/20 text-ocean-cyan border border-ocean-cyan/40">
+NIVEL 1
+</span>
+<h2 id="levelTitle" class="text-lg sm:text-xl font-bold text-white mt-1">
+Concepto de Número Entero
+</h2>
+</div>
+<p id="levelInstructions" class="text-xs sm:text-sm text-slate-300 max-w-md">
+Asocia las situaciones con su correspondiente número entero (+, 0, -).
+</p>
+</div>
+
+<div id="visualContainer" class="glass-panel rounded-2xl p-4 sm:p-6 min-h-[260px] flex flex-col justify-center items-center relative overflow-hidden">
+</div>
+
+<div class="glass-panel rounded-2xl p-6 space-y-6">
+<div class="text-center">
+<p id="questionPrompt" class="text-base sm:text-xl font-semibold text-slate-100">
+¿Cargando pregunta...?
+</p>
+<p id="questionSubtext" class="text-xs sm:text-sm text-ocean-cyan mt-1 hidden"></p>
+</div>
+<div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto"></div>
+<div id="hintWrapper" class="hidden text-center">
+<button onclick="game.toggleHint()" class="text-xs text-ocean-warning hover:underline inline-flex items-center gap-1 font-semibold">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+<span id="btnHintText">Ver Pista Explicativa</span>
+</button>
+<div id="hintBox" class="hidden mt-3 p-3 rounded-lg bg-ocean-900/90 border border-ocean-warning/40 text-xs text-slate-300 max-w-lg mx-auto text-left"></div>
+</div>
+<div id="feedbackBox" class="hidden p-4 rounded-xl text-center space-y-3 transition-all duration-300">
+<div id="feedbackMessage" class="text-base font-bold"></div>
+<div id="feedbackExplanation" class="text-xs sm:text-sm text-slate-300"></div>
+<button id="btnNextQuestion" onclick="game.nextQuestion()" class="btn-cyber px-6 py-2.5 rounded-lg font-tech font-bold text-sm text-ocean-cyan">
+Siguiente Ejercicio ➔
+</button>
+</div>
+</div>
+</div>
+
+<div id="screenLevelComplete" class="hidden glass-panel rounded-2xl p-8 text-center max-w-xl mx-auto space-y-6">
+<div class="w-20 h-20 mx-auto rounded-full bg-ocean-emerald/20 border-2 border-ocean-emerald flex items-center justify-center animate-bounce">
+<svg class="w-10 h-10 text-ocean-emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+</svg>
+</div>
+<div class="space-y-2">
+<span class="text-xs font-tech font-bold text-ocean-emerald uppercase tracking-widest">¡Nivel Superado!</span>
+<h2 id="completedLevelTitle" class="font-tech text-2xl font-bold text-white">Nivel 1 Completo</h2>
+<p class="text-sm text-slate-300">¡Has obtenido la insignia de comandante de profundidades!</p>
+</div>
+<div class="p-4 rounded-xl bg-ocean-900/80 border border-ocean-cyan/30 flex justify-around items-center font-tech">
+<div>
+<p class="text-xs text-slate-400">PUNTOS NIVEL</p>
+<p id="levelPointsBonus" class="text-lg text-ocean-cyan font-bold">+150</p>
+</div>
+<div class="h-8 w-px bg-slate-700"></div>
+<div>
+<p class="text-xs text-slate-400">PRECISIÓN</p>
+<p id="levelAccuracy" class="text-lg text-ocean-emerald font-bold">100%</p>
+</div>
+</div>
+<button onclick="game.startNextLevel()" class="btn-cyber w-full py-3.5 rounded-xl font-tech font-bold text-ocean-cyan uppercase tracking-wider">
+Continuar al Siguiente Nivel ➔
+</button>
+</div>
+
+<div id="screenEnd" class="hidden glass-panel rounded-2xl p-8 text-center max-w-xl mx-auto space-y-6">
+<div id="endIconContainer" class="w-24 h-24 mx-auto rounded-full flex items-center justify-center border-2"></div>
+<div class="space-y-2">
+<h2 id="endTitle" class="font-tech text-3xl font-extrabold text-white">¡MISIÓN CUMPLIDA!</h2>
+<p id="endSubtitle" class="text-slate-300 text-sm">Has explorado exitosamente todas las profundidades marinas.</p>
+</div>
+<div class="p-5 rounded-xl bg-ocean-900/90 border border-ocean-cyan/30 space-y-3 font-tech">
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-400">Puntuación Total:</span>
+<span id="finalScore" class="text-xl text-ocean-warning font-bold">0</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-400">Nivel Alcanzado:</span>
+<span id="finalLevel" class="text-ocean-cyan font-bold">5 / 5</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-400">Rango Náutico:</span>
+<span id="finalRank" class="text-ocean-emerald font-bold">Comandante de Abismos</span>
+</div>
+</div>
+<button onclick="game.restartGame()" class="btn-cyber w-full py-4 rounded-xl font-tech font-bold text-ocean-cyan uppercase tracking-wider">
+🔄 Jugar de Nuevo
+</button>
+</div>
+</main>
+
+<footer class="relative z-10 w-full glass-panel border-t border-ocean-cyan/20 py-3 text-center text-xs text-slate-400">
+<p>Misión Submarina • Juego Educativo de Matemática Interactiva para 6º Educación Primaria</p>
+</footer>
+
+<script>
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioContext();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+  playSuccess() {
+    if (this.muted) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  }
+  playError() {
+    if (this.muted) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+  playClick() {
+    if (this.muted) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+  playLevelComplete() {
+    if (this.muted) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+      gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 0.3);
+    });
+  }
+}
+
+const sound = new SoundEngine();
+
+const GAME_DATA = [
+{
+  level: 1,
+  title: "Concepto de Número Entero",
+  instructions: "Observa la representación gráfica del nivel del mar y asocia la situación con su número entero.",
+  questions: [
+    {
+      type: "concept",
+      text: "Un buzo se encuentra explorando a 15 metros de profundidad bajo el nivel del mar. ¿Qué número entero representa su posición?",
+      visualType: "sea_level",
+      visualData: { altitude: -15, label: "Buzo" },
+      options: ["+15", "-15", "0", "-5"],
+      correct: "-15",
+      explanation: "Las profundidades por debajo del nivel del mar se expresan con números enteros negativos (-15 m)."
+    },
+    {
+      type: "concept",
+      text: "Un dron de exploración vuela a 40 metros sobre el nivel del mar. ¿Qué número entero indica su altitud?",
+      visualType: "sea_level",
+      visualData: { altitude: 40, label: "Dron" },
+      options: ["-40", "+40", "0", "+4"],
+      correct: "+40",
+      explanation: "Las altitudes por encima del nivel del mar se representan con números enteros positivos (+40 m)."
+    },
+    {
+      type: "concept",
+      text: "Un barco científico flota exactamente en la superficie del agua. ¿Qué número entero representa su posición respecto al nivel del mar?",
+      visualType: "sea_level",
+      visualData: { altitude: 0, label: "Barco" },
+      options: ["+1", "-1", "0", "+10"],
+      correct: "0",
+      explanation: "El nivel del mar actúa como el punto de referencia neutro, representado por el número 0."
+    },
+    {
+      type: "concept",
+      text: "El submarino desciende a una fosa abisal situada a 80 metros de profundidad. ¿Cuál es su valor entero?",
+      visualType: "sea_level",
+      visualData: { altitude: -80, label: "Submarino" },
+      options: ["+80", "-80", "-8", "0"],
+      correct: "-80",
+      explanation: "Al estar 80 metros bajo el nivel del mar, su posición es -80."
+    }
+  ]
+},
+{
+  level: 2,
+  title: "La Recta Numérica y Comparación",
+  instructions: "Compara los números enteros utilizando los signos < (menor que), > (mayor que) o = (igual a).",
+  questions: [
+    {
+      type: "compare",
+      text: "Compara los dos niveles de profundidad: -8 y -3",
+      numA: -8,
+      numB: -3,
+      visualType: "number_line",
+      options: ["-8 < -3", "-8 > -3", "-8 = -3"],
+      correct: "-8 < -3",
+      explanation: "En la recta numérica, cuanto más a la izquierda (o más abajo) esté un número negativo, MENOR es su valor. -8 está más a la izquierda que -3."
+    },
+    {
+      type: "compare",
+      text: "Compara la posición del submarino (+5) con la del buzo (-5)",
+      numA: 5,
+      numB: -5,
+      visualType: "number_line",
+      options: ["+5 < -5", "+5 > -5", "+5 = -5"],
+      correct: "+5 > -5",
+      explanation: "Cualquier número entero positivo es siempre MAYOR que cualquier número entero negativo."
+    },
+    {
+      type: "compare",
+      text: "Compara la temperatura de dos zonas abisales: -12 °C y -15 °C",
+      numA: -12,
+      numB: -15,
+      visualType: "number_line",
+      options: ["-12 < -15", "-12 > -15", "-12 = -15"],
+      correct: "-12 > -15",
+      explanation: "-12 está más cerca del cero que -15, por lo tanto es un valor mayor."
+    },
+    {
+      type: "compare",
+      text: "Compara el nivel del mar (0) con una profundidad de -7 metros",
+      numA: 0,
+      numB: -7,
+      visualType: "number_line",
+      options: ["0 < -7", "0 > -7", "0 = -7"],
+      correct: "0 > -7",
+      explanation: "El cero es mayor que cualquier número negativo."
+    }
+  ]
+},
+{
+  level: 3,
+  title: "Suma y Resta de Propulsores",
+  instructions: "Calcula los desplazamientos del submarino aplicando la suma y resta de enteros.",
+  questions: [
+    {
+      type: "calc",
+      text: "El submarino estaba a -20 metros y asciende (+15) metros. ¿A qué profundidad se encuentra ahora?",
+      expression: "(-20) + (+15)",
+      visualType: "movement_line",
+      start: -20,
+      change: +15,
+      options: ["-35 m", "-5 m", "+5 m", "-10 m"],
+      correct: "-5 m",
+      explanation: "(-20) + 15 = -5. Al ascender sumamos 15 a -20."
+    },
+    {
+      type: "calc",
+      text: "La temperatura en el exterior es de -4 °C. Si la temperatura baja 6 °C más, ¿cuál es la nueva temperatura?",
+      expression: "(-4) - (+6)",
+      visualType: "movement_line",
+      start: -4,
+      change: -6,
+      options: ["-10 °C", "+2 °C", "-2 °C", "+10 °C"],
+      correct: "-10 °C",
+      explanation: "(-4) - 6 = -10 °C. Restar o bajar grados desplaza el valor hacia la izquierda en la recta."
+    },
+    {
+      type: "calc",
+      text: "Un submarino está a -50 metros y desciende (-30) metros más. ¿Cuál es su profundidad final?",
+      expression: "(-50) + (-30)",
+      visualType: "movement_line",
+      start: -50,
+      change: -30,
+      options: ["-20 m", "-80 m", "+20 m", "-70 m"],
+      correct: "-80 m",
+      explanation: "(-50) + (-30) = -80 metros. Al descender sumamos más profundidad negativa."
+    },
+    {
+      type: "calc",
+      text: "Un buzo está a -12 metros y sube 12 metros a la superficie. ¿En qué posición se sitúa?",
+      expression: "(-12) + (+12)",
+      visualType: "movement_line",
+      start: -12,
+      change: +12,
+      options: ["-24 m", "+24 m", "0 m", "-1 m"],
+      correct: "0 m",
+      explanation: "(-12) + 12 = 0 m. La suma de opuestos da como resultado el origen (nivel del mar)."
+    }
+  ]
+},
+{
+  level: 4,
+  title: "Diario de A bordo (Problemas)",
+  instructions: "Resuelve los problemas razonando con operaciones de enteros. Puedes desplegar la pista gráfica.",
+  questions: [
+    {
+      type: "problem",
+      text: "En el océano Ártico, la temperatura del aire es de -18 °C y la temperatura del agua marina profunda es de +4 °C. ¿Cuál es la diferencia de temperatura entre el aire y el agua?",
+      hint: "Diferencia = Temperatura mayor menos temperatura menor: (+4) - (-18) = (+4) + 18",
+      visualType: "problem_graphic",
+      options: ["14 °C", "22 °C", "-14 °C", "20 °C"],
+      correct: "22 °C",
+      explanation: "La diferencia es: 4 - (-18) = 4 + 18 = 22 °C. De -18 °C a 0 °C hay 18 grados, y de 0 °C a 4 °C hay 4 grados más."
+    },
+    {
+      type: "problem",
+      text: "Un batiscafo parte de la superficie (0 m), desciende 45 metros, luego asciende 15 metros y finalmente vuelve a descender 20 metros. ¿A qué profundidad se encuentra?",
+      hint: "Escribe la operación combinada: 0 - 45 + 15 - 20",
+      visualType: "problem_graphic",
+      options: ["-50 m", "-80 m", "-10 m", "-40 m"],
+      correct: "-50 m",
+      explanation: "0 - 45 = -45 m. Luego -45 + 15 = -30 m. Finalmente -30 - 20 = -50 m."
+    },
+    {
+      type: "problem",
+      text: "Un volcán submarino tiene su base a -1200 metros y su cima se eleva 800 metros desde la base. ¿A qué profundidad se encuentra la cima del volcán?",
+      hint: "Suma la elevación a la profundidad de la base: -1200 + 800",
+      visualType: "problem_graphic",
+      options: ["-400 m", "-2000 m", "+400 m", "-500 m"],
+      correct: "-400 m",
+      explanation: "(-1200) + 800 = -400 metros."
+    }
+  ]
+},
+{
+  level: 5,
+  title: "El Radar Náutico (Coordenadas Cartesianas)",
+  instructions: "Identifica las coordenadas (X, Y) de los objetivos en el radar de 4 cuadrantes.",
+  questions: [
+    {
+      type: "grid",
+      text: "El radar detecta un tesoro antiguo en el Cuadrante I. ¿Cuáles son sus coordenadas (X, Y)?",
+      targetPoint: { x: 3, y: 4, name: "Tesoro", color: "#00ffaa" },
+      visualType: "cartesian_grid",
+      options: ["(3, 4)", "(-3, 4)", "(4, 3)", "(-3, -4)"],
+      correct: "(3, 4)",
+      explanation: "Eje X (horizontal) = 3 a la derecha. Eje Y (vertical) = 4 hacia arriba. Coordenadas: (3, 4)."
+    },
+    {
+      type: "grid",
+      text: "Se detecta una cueva submarina en el Cuadrante III. ¿Qué coordenadas le corresponden?",
+      targetPoint: { x: -4, y: -2, name: "Cueva", color: "#ff2a6d" },
+      visualType: "cartesian_grid",
+      options: ["(-4, -2)", "(4, -2)", "(-2, -4)", "(-4, 2)"],
+      correct: "(-4, -2)",
+      explanation: "Eje X = 4 a la izquierda (-4). Eje Y = 2 hacia abajo (-2). Coordenadas: (-4, -2)."
+    },
+    {
+      type: "grid",
+      text: "Un dron de rescate se encuentra en el Cuadrante II. Determina su posición (X, Y):",
+      targetPoint: { x: -5, y: 3, name: "Dron", color: "#00f0ff" },
+      visualType: "cartesian_grid",
+      options: ["(-5, 3)", "(5, 3)", "(3, -5)", "(-5, -3)"],
+      correct: "(-5, 3)",
+      explanation: "Eje X = 5 a la izquierda (-5). Eje Y = 3 hacia arriba (+3). Coordenadas: (-5, 3)."
+    },
+    {
+      type: "grid",
+      text: "Un batiscafo enemigo navega por el Cuadrante IV. Identifica sus coordenadas:",
+      targetPoint: { x: 2, y: -5, name: "Batiscafo", color: "#ffb700" },
+      visualType: "cartesian_grid",
+      options: ["(2, -5)", "(-2, -5)", "(-5, 2)", "(5, -2)"],
+      correct: "(2, -5)",
+      explanation: "Eje X = 2 a la derecha (+2). Eje Y = 5 hacia abajo (-5). Coordenadas: (2, -5)."
+    }
+  ]
+}
+];
+
+class SubmarineGame {
+  constructor() {
+    this.currentLevelIndex = 0;
+    this.currentQuestionIndex = 0;
+    this.score = 0;
+    this.lives = 3;
+    this.streak = 0;
+    this.answered = false;
+    this.levelScoreStart = 0;
+    this.levelCorrectCount = 0;
+    this.screens = {
+      welcome: document.getElementById('screenWelcome'),
+      game: document.getElementById('screenGame'),
+      levelComplete: document.getElementById('screenLevelComplete'),
+      end: document.getElementById('screenEnd')
+    };
+  }
+  init() {
+    this.initBubbles();
+    this.updateStatsUI();
+  }
+  toggleSound() {
+    sound.muted = !sound.muted;
+    document.getElementById('iconSoundOn').classList.toggle('hidden', sound.muted);
+    document.getElementById('iconSoundOff').classList.toggle('hidden', !sound.muted);
+  }
+  startGame() {
+    sound.playClick();
+    this.currentLevelIndex = 0;
+    this.currentQuestionIndex = 0;
+    this.score = 0;
+    this.lives = 3;
+    this.streak = 0;
+    this.levelCorrectCount = 0;
+    this.showScreen('game');
+    this.loadLevelQuestion();
+  }
+  restartGame() {
+    sound.playClick();
+    this.startGame();
+  }
+  showScreen(screenName) {
+    Object.keys(this.screens).forEach(key => {
+      this.screens[key].classList.add('hidden');
+    });
+    this.screens[screenName].classList.remove('hidden');
+  }
+  updateStatsUI() {
+    document.getElementById('statLevel').textContent = this.currentLevelIndex + 1;
+    document.getElementById('statScore').textContent = this.score;
+    document.getElementById('statStreak').textContent = this.streak;
+    const container = document.getElementById('livesContainer');
+    container.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const heart = document.createElement('span');
+      heart.className = `text-lg transition-transform ${i < this.lives ? 'opacity-100 scale-100' : 'opacity-20 scale-75'}`;
+      heart.textContent = '🤿';
+      container.appendChild(heart);
+    }
+  }
+  loadLevelQuestion() {
+    this.answered = false;
+    const levelData = GAME_DATA[this.currentLevelIndex];
+    const questionData = levelData.questions[this.currentQuestionIndex];
+    document.getElementById('levelBadge').textContent = `NIVEL ${levelData.level}`;
+    document.getElementById('levelTitle').textContent = levelData.title;
+    document.getElementById('levelInstructions').textContent = levelData.instructions;
+    this.updateStatsUI();
+    document.getElementById('feedbackBox').classList.add('hidden');
+    document.getElementById('hintWrapper').classList.add('hidden');
+    document.getElementById('hintBox').classList.add('hidden');
+    document.getElementById('questionPrompt').textContent = questionData.text;
+    if (questionData.hint) {
+      document.getElementById('hintWrapper').classList.remove('hidden');
+      document.getElementById('hintBox').textContent = questionData.hint;
+      document.getElementById('btnHintText').textContent = "Ver Pista Explicativa";
+    }
+    this.renderVisual(questionData);
+    this.renderOptions(questionData);
+  }
+  renderOptions(qData) {
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    qData.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = "btn-cyber py-3.5 px-4 rounded-xl font-tech text-base sm:text-lg font-bold text-ocean-cyan text-center flex items-center justify-center tracking-wide";
+      btn.textContent = opt;
+      btn.onclick = () => this.checkAnswer(opt, qData.correct, qData.explanation);
+      container.appendChild(btn);
+    });
+  }
+  toggleHint() {
+    sound.playClick();
+    const hintBox = document.getElementById('hintBox');
+    const isHidden = hintBox.classList.contains('hidden');
+    hintBox.classList.toggle('hidden');
+    document.getElementById('btnHintText').textContent = isHidden ? "Ocultar Pista" : "Ver Pista Explicativa";
+  }
+  checkAnswer(selected, correct, explanation) {
+    if (this.answered) return;
+    this.answered = true;
+    const isCorrect = (selected === correct);
+    const feedbackBox = document.getElementById('feedbackBox');
+    const feedbackMsg = document.getElementById('feedbackMessage');
+    const feedbackExp = document.getElementById('feedbackExplanation');
+    const buttons = document.querySelectorAll('#optionsContainer button');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      if (btn.textContent === correct) {
+        btn.classList.add('bg-ocean-emerald', 'text-ocean-900', 'border-ocean-emerald');
+      } else if (btn.textContent === selected && !isCorrect) {
+        btn.classList.add('bg-ocean-danger', 'text-white', 'border-ocean-danger');
+      }
+    });
+    feedbackBox.classList.remove('hidden', 'bg-emerald-900/40', 'border-emerald-500', 'bg-rose-900/40', 'border-rose-500');
+    if (isCorrect) {
+      sound.playSuccess();
+      this.streak++;
+      const pointsEarned = 100 + (this.streak * 10);
+      this.score += pointsEarned;
+      this.levelCorrectCount++;
+      feedbackBox.classList.add('bg-emerald-950/80', 'border', 'border-ocean-emerald');
+      feedbackMsg.className = "text-lg font-tech font-bold text-ocean-emerald flex items-center justify-center gap-2";
+      feedbackMsg.innerHTML = `<span>✨ ¡EXCELENTE, CAPITÁN! (+${pointsEarned} PTS)</span>`;
+      feedbackExp.textContent = explanation;
+    } else {
+      sound.playError();
+      this.lives--;
+      this.streak = 0;
+      feedbackBox.classList.add('bg-rose-950/80', 'border', 'border-ocean-danger');
+      feedbackMsg.className = "text-lg font-tech font-bold text-ocean-danger flex items-center justify-center gap-2";
+      feedbackMsg.innerHTML = `<span>⚠️ ERROR DE NAVEGACIÓN</span>`;
+      feedbackExp.textContent = explanation;
+    }
+    this.updateStatsUI();
+    if (this.lives <= 0) {
+      setTimeout(() => this.endGame(false), 1500);
+    }
+  }
+  nextQuestion() {
+    sound.playClick();
+    const currentLevel = GAME_DATA[this.currentLevelIndex];
+    this.currentQuestionIndex++;
+    if (this.currentQuestionIndex >= currentLevel.questions.length) {
+      this.showLevelCompleteScreen();
+    } else {
+      this.loadLevelQuestion();
+    }
+  }
+  showLevelCompleteScreen() {
+    sound.playLevelComplete();
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+    }
+    document.getElementById('completedLevelTitle').textContent = `Nivel ${this.currentLevelIndex + 1} Completado`;
+    const totalLevelQ = GAME_DATA[this.currentLevelIndex].questions.length;
+    const accuracy = Math.round((this.levelCorrectCount / totalLevelQ) * 100);
+    document.getElementById('levelPointsBonus').textContent = `+${this.levelCorrectCount * 100}`;
+    document.getElementById('levelAccuracy').textContent = `${accuracy}%`;
+    this.showScreen('levelComplete');
+  }
+  startNextLevel() {
+    sound.playClick();
+    this.currentLevelIndex++;
+    this.currentQuestionIndex = 0;
+    this.levelCorrectCount = 0;
+    if (this.currentLevelIndex >= GAME_DATA.length) {
+      this.endGame(true);
+    } else {
+      this.showScreen('game');
+      this.loadLevelQuestion();
+    }
+  }
+  endGame(victory) {
+    this.showScreen('end');
+    const iconContainer = document.getElementById('endIconContainer');
+    if (victory) {
+      sound.playLevelComplete();
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+      }
+      iconContainer.className = "w-24 h-24 mx-auto rounded-full flex items-center justify-center border-2 border-ocean-emerald bg-ocean-emerald/20 text-ocean-emerald";
+      iconContainer.innerHTML = `
+<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+</svg>`;
+      document.getElementById('endTitle').textContent = "¡MISIÓN CUMPLIDA!";
+      document.getElementById('endSubtitle').textContent = "¡Felicidades! Has completado el mapa de profundidades dominando todos los números enteros.";
+    } else {
+      sound.playError();
+      iconContainer.className = "w-24 h-24 mx-auto rounded-full flex items-center justify-center border-2 border-ocean-danger bg-ocean-danger/20 text-ocean-danger";
+      iconContainer.innerHTML = `
+<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+</svg>`;
+      document.getElementById('endTitle').textContent = "¡OXÍGENO AGOTADO!";
+      document.getElementById('endSubtitle').textContent = "El submarino tuvo que emerger de emergencia. ¡Inténtalo de nuevo!";
+    }
+    document.getElementById('finalScore').textContent = this.score;
+    document.getElementById('finalLevel').textContent = `${Math.min(this.currentLevelIndex + 1, 5)} / 5`;
+    let rank = "Cadete Náutico";
+    if (this.score > 1200) rank = "Comandante de Abismos";
+    else if (this.score > 800) rank = "Piloto de Batiscafo";
+    else if (this.score > 400) rank = "Navegante de Superficie";
+    document.getElementById('finalRank').textContent = rank;
+  }
+  renderVisual(qData) {
+    const container = document.getElementById('visualContainer');
+    container.innerHTML = '';
+    switch (qData.visualType) {
+      case "sea_level":
+        container.innerHTML = this.generateSeaLevelSVG(qData.visualData);
+        break;
+      case "number_line":
+        container.innerHTML = this.generateNumberLineSVG(qData.numA, qData.numB);
+        break;
+      case "movement_line":
+        container.innerHTML = this.generateMovementSVG(qData.start, qData.change);
+        break;
+      case "problem_graphic":
+        container.innerHTML = this.generateProblemSVG(qData);
+        break;
+      case "cartesian_grid":
+        container.innerHTML = this.generateCartesianSVG(qData.targetPoint);
+        break;
+    }
+  }
+  generateSeaLevelSVG(data) {
+    const alt = data.altitude;
+    let elementY = 90 - (alt * 1.2);
+    elementY = Math.max(30, Math.min(210, elementY));
+    return `
+<svg viewBox="0 0 500 240" class="w-full max-w-lg h-auto rounded-xl shadow-inner border border-ocean-cyan/20 bg-ocean-900">
+<defs>
+<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#0284c7"/>
+<stop offset="100%" stop-color="#38bdf8"/>
+</linearGradient>
+<linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#0369a1"/>
+<stop offset="50%" stop-color="#071638"/>
+<stop offset="100%" stop-color="#030b1e"/>
+</linearGradient>
+</defs>
+<rect x="0" y="0" width="500" height="90" fill="url(#skyGrad)"/>
+<rect x="0" y="90" width="500" height="150" fill="url(#seaGrad)"/>
+<line x1="0" y1="90" x2="500" y2="90" stroke="#00f0ff" stroke-width="2" stroke-dasharray="6,4"/>
+<rect x="10" y="78" width="110" height="22" rx="4" fill="#071638" stroke="#00f0ff" stroke-width="1"/>
+<text x="65" y="93" fill="#00f0ff" font-size="11" font-weight="bold" font-family="Orbitron" text-anchor="middle">NIVEL MAR (0m)</text>
+<path d="M 50,40 Q 60,30 70,40 Q 80,30 90,40" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6"/>
+<g transform="translate(250, ${elementY})">
+<circle cx="0" cy="0" r="22" fill="#0d255c" stroke="#00ffaa" stroke-width="2" class="animate-pulse"/>
+${alt > 0 ? `
+<path d="M-10,-5 L10,-5 L0,10 Z" fill="#00ffaa"/>
+` : alt === 0 ? `
+<path d="M-14,0 L14,0 L10,8 L-10,8 Z" fill="#00ffaa"/>
+` : `
+<rect x="-12" y="-6" width="24" height="12" rx="6" fill="#00ffaa"/>
+<circle cx="6" cy="-2" r="2" fill="#071638"/>
+`}
+<rect x="30" y="-12" width="70" height="24" rx="6" fill="#030b1e" stroke="#00ffaa" stroke-width="1"/>
+<text x="65" y="4" fill="#00ffaa" font-size="12" font-weight="bold" font-family="Orbitron" text-anchor="middle">${alt > 0 ? '+' + alt : alt} m</text>
+</g>
+<line x1="460" y1="20" x2="460" y2="220" stroke="#475569" stroke-width="2"/>
+<text x="450" y="35" fill="#38bdf8" font-size="10" text-anchor="end">+40m</text>
+<text x="450" y="94" fill="#00f0ff" font-size="10" text-anchor="end">0m</text>
+<text x="450" y="150" fill="#94a3b8" font-size="10" text-anchor="end">-40m</text>
+<text x="450" y="210" fill="#94a3b8" font-size="10" text-anchor="end">-80m</text>
+</svg>
+`;
+  }
+  generateNumberLineSVG(a, b) {
+    return `
+<svg viewBox="0 0 500 160" class="w-full max-w-lg h-auto rounded-xl border border-ocean-cyan/20 bg-ocean-900 p-2">
+<line x1="30" y1="80" x2="470" y2="80" stroke="#00f0ff" stroke-width="3"/>
+<polygon points="20,80 32,74 32,86" fill="#00f0ff"/>
+<polygon points="480,80 468,74 468,86" fill="#00f0ff"/>
+${[-15, -10, -5, 0, 5, 10, 15].map(val => {
+  const x = 250 + (val * 13);
+  const isZero = val === 0;
+  return `
+<line x1="${x}" y1="70" x2="${x}" y2="90" stroke="${isZero ? '#00ffaa' : '#64748b'}" stroke-width="${isZero ? '3' : '1.5'}"/>
+<text x="${x}" y="110" fill="${isZero ? '#00ffaa' : '#94a3b8'}" font-size="11" font-weight="bold" font-family="Orbitron" text-anchor="middle">${val}</text>
+`;
+}).join('')}
+<g transform="translate(${250 + (a * 13)}, 80)">
+<circle cx="0" cy="0" r="10" fill="#ff2a6d" stroke="#ffffff" stroke-width="2" class="animate-bounce"/>
+<text x="0" y="-16" fill="#ff2a6d" font-size="12" font-weight="bold" font-family="Orbitron" text-anchor="middle">${a > 0 ? '+' + a : a}</text>
+</g>
+<g transform="translate(${250 + (b * 13)}, 80)">
+<circle cx="0" cy="0" r="10" fill="#00ffaa" stroke="#ffffff" stroke-width="2"/>
+<text x="0" y="-16" fill="#00ffaa" font-size="12" font-weight="bold" font-family="Orbitron" text-anchor="middle">${b > 0 ? '+' + b : b}</text>
+</g>
+</svg>
+`;
+  }
+  generateMovementSVG(start, change) {
+    const end = start + change;
+    const startX = 250 + (start * 3.5);
+    const endX = 250 + (end * 3.5);
+    const isAscent = change > 0;
+    return `
+<svg viewBox="0 0 500 180" class="w-full max-w-lg h-auto rounded-xl border border-ocean-cyan/20 bg-ocean-900 p-2">
+<line x1="30" y1="120" x2="470" y2="120" stroke="#00f0ff" stroke-width="2"/>
+${[-60, -40, -20, 0, 20].map(val => {
+  const x = 250 + (val * 3.5);
+  return `
+<line x1="${x}" y1="113" x2="${x}" y2="127" stroke="#64748b" stroke-width="1.5"/>
+<text x="${x}" y="145" fill="#94a3b8" font-size="10" font-family="Orbitron" text-anchor="middle">${val}</text>
+`;
+}).join('')}
+<path d="M ${startX},110 Q ${(startX + endX)/2},${110 - Math.abs(change)*1.2} ${endX},110"
+fill="none" stroke="${isAscent ? '#00ffaa' : '#ff2a6d'}" stroke-width="3" stroke-dasharray="5,5"/>
+<rect x="${(startX + endX)/2 - 30}" y="${80 - Math.abs(change)*0.6}" width="60" height="20" rx="4" fill="#030b1e" stroke="${isAscent ? '#00ffaa' : '#ff2a6d'}"/>
+<text x="${(startX + endX)/2}" y="${94 - Math.abs(change)*0.6}" fill="${isAscent ? '#00ffaa' : '#ff2a6d'}" font-size="11" font-weight="bold" font-family="Orbitron" text-anchor="middle">
+${isAscent ? '+' + change : change}
+</text>
+<circle cx="${startX}" cy="120" r="6" fill="#94a3b8"/>
+<text x="${startX}" y="165" fill="#94a3b8" font-size="9" text-anchor="middle">Inicio (${start})</text>
+<circle cx="${endX}" cy="120" r="8" fill="${isAscent ? '#00ffaa' : '#ff2a6d'}" stroke="#ffffff" stroke-width="2"/>
+<text x="${endX}" y="165" fill="${isAscent ? '#00ffaa' : '#ff2a6d'}" font-size="10" font-weight="bold" text-anchor="middle">Final (${end})</text>
+</svg>
+`;
+  }
+  generateProblemSVG(qData) {
+    return `
+<svg viewBox="0 0 500 200" class="w-full max-w-lg h-auto rounded-xl border border-ocean-cyan/20 bg-ocean-900">
+<rect x="0" y="0" width="500" height="200" fill="#071638"/>
+<circle cx="250" cy="100" r="70" fill="none" stroke="#00f0ff" stroke-width="1" stroke-dasharray="4 4"/>
+<circle cx="250" cy="100" r="40" fill="none" stroke="#00f0ff" stroke-width="1" stroke-dasharray="2 2"/>
+<g transform="translate(250, 100)">
+<rect x="-35" y="-35" width="70" height="70" rx="12" fill="#0d255c" stroke="#00f0ff" stroke-width="2"/>
+<path d="M-15,-10 L15,-10 M-15,0 L10,0 M-15,10 L5,10" stroke="#00ffaa" stroke-width="2" stroke-linecap="round"/>
+</g>
+<text x="250" y="185" fill="#00f0ff" font-size="11" font-family="Orbitron" font-weight="bold" text-anchor="middle">DIARIO DE INMERSIÓN TÁCTICO</text>
+</svg>
+`;
+  }
+  generateCartesianSVG(target) {
+    const scaleX = (val) => 150 + (val * 18);
+    const scaleY = (val) => 100 - (val * 14);
+    const targetSvgX = scaleX(target.x);
+    const targetSvgY = scaleY(target.y);
+    return `
+<svg viewBox="0 0 300 200" class="w-full max-w-md h-auto rounded-xl border border-ocean-cyan/30 bg-ocean-900 p-1">
+${[-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map(v => `
+<line x1="${scaleX(v)}" y1="10" x2="${scaleX(v)}" y2="190" stroke="#1e293b" stroke-width="1"/>
+<line x1="10" y1="${scaleY(v)}" x2="290" y2="${scaleY(v)}" stroke="#1e293b" stroke-width="1"/>
+`).join('')}
+<line x1="10" y1="100" x2="290" y2="100" stroke="#00f0ff" stroke-width="2"/>
+<line x1="150" y1="10" x2="150" y2="190" stroke="#00f0ff" stroke-width="2"/>
+<text x="282" y="92" fill="#00f0ff" font-size="10" font-weight="bold">X</text>
+<text x="156" y="20" fill="#00f0ff" font-size="10" font-weight="bold">Y</text>
+<text x="138" y="112" fill="#64748b" font-size="9">(0,0)</text>
+<text x="220" y="30" fill="#334155" font-size="10" font-weight="bold">I (+,+)</text>
+<text x="40" y="30" fill="#334155" font-size="10" font-weight="bold">II (-,+)</text>
+<text x="40" y="180" fill="#334155" font-size="10" font-weight="bold">III (-,-)</text>
+<text x="220" y="180" fill="#334155" font-size="10" font-weight="bold">IV (+,-)</text>
+<line x1="${targetSvgX}" y1="100" x2="${targetSvgX}" y2="${targetSvgY}" stroke="${target.color}" stroke-dasharray="3,3" stroke-width="1.5"/>
+<line x1="150" y1="${targetSvgY}" x2="${targetSvgX}" y2="${targetSvgY}" stroke="${target.color}" stroke-dasharray="3,3" stroke-width="1.5"/>
+<g transform="translate(${targetSvgX}, ${targetSvgY})">
+<circle cx="0" cy="0" r="12" fill="none" stroke="${target.color}" stroke-width="2" class="animate-ping"/>
+<circle cx="0" cy="0" r="6" fill="${target.color}"/>
+<text x="10" y="-8" fill="${target.color}" font-size="11" font-weight="bold" font-family="Orbitron">${target.name}</text>
+</g>
+</svg>
+`;
+  }
+  initBubbles() {
+    const canvas = document.getElementById('bubbleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+    const bubbles = Array.from({ length: 35 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height + height,
+      radius: Math.random() * 4 + 1,
+      speed: Math.random() * 1.5 + 0.5,
+      opacity: Math.random() * 0.5 + 0.2
+    }));
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      bubbles.forEach(b => {
+        b.y -= b.speed;
+        if (b.y < -10) {
+          b.y = height + 10;
+          b.x = Math.random() * width;
+        }
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 240, 255, ${b.opacity})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${b.opacity * 0.5})`;
+        ctx.stroke();
+      });
+      requestAnimationFrame(animate);
+    };
+    animate();
+  }
+}
+
+let game;
+window.addEventListener('DOMContentLoaded', () => {
+  game = new SubmarineGame();
+  game.init();
+});
+</script>
+</body>
+</html>
